@@ -2,7 +2,7 @@
   "name": "فرم هوشمند گزارش ضایعات",
   "short_name": "فرم ضایعات",
   "description": "فرم هوشمند و آفلاین برای ثبت گزارش ضایعات شرکت پاکشوما",
-  "start_url": "./index.html",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#eef2f7",
   "theme_color": "#0056b3",
