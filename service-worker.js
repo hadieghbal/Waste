@@ -1,53 +1,59 @@
-// 1. تغییر نام کش - این خیلی مهمه!
-const CACHE_NAME = 'waste-app-cache-v2'; // نسخه رو از v1 به v2 تغییر دادیم
+// 1. نسخه کش را حتماً عوض کنید تا مرورگر مجبور به آپدیت شود
+const CACHE_NAME = 'form-offline-v2'; // از v1 به v2 تغییر یافت
 
-// 2. لیست کامل فایل‌ها برای کش شدن
+// 2. لیست کامل و صحیح فایل‌ها
 const urlsToCache = [
-  '/', // این آدرس ریشه است
-  'index.html',
-  'style.css',
-  'script.js',
-  'manifest.json',
-  'images/icon-192.png',
-  'images/icon-512.png',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css' // فایل آیکون‌ها
+  './',
+  './index.html',
+  './style.css',          // <<< این اضافه شد
+  './script.js',          // <<< این اضافه شد
+  './manifest.json',      // <<< این اضافه شد
+  './assets/css/jdp.min.css',
+  './assets/css/bootstrap-icons.min.css',
+  './assets/css/choices.min.css',
+  './assets/js/html2canvas.min.js',
+  './assets/js/jdp.min.js',
+  './assets/js/choices.min.js',
+  './assets/fonts/vazirmatn/Vazirmatn-RD-Regular.woff2',
+  './assets/fonts/vazirmatn/Vazirmatn-RD-Medium.woff2',
+  './assets/fonts/vazirmatn/Vazirmatn-RD-Bold.woff2',
+  './assets/fonts/bootstrap-icons.woff',
+  './assets/fonts/bootstrap-icons.woff2',
+  './assets/icons/icon-192x192.png',
+  './assets/icons/icon-512x512.png'
 ];
 
-// هنگام نصب سرویس ورکر، فایل‌ها را کش کن
+// رویداد نصب: فایل‌ها را در کش ذخیره می‌کند
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache and caching files');
+        console.log('Opened cache and caching new files for version:', CACHE_NAME);
         return cache.addAll(urlsToCache);
       })
   );
+  self.skipWaiting(); // سرویس ورکر جدید را بلافاصله فعال می‌کند
 });
 
-// هنگام دریافت درخواست (fetch)، از کش استفاده کن
+// رویداد fetch: درخواست‌ها را رهگیری کرده و از کش پاسخ می‌دهد
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // اگر فایل در کش بود، همان را برگردان
-        if (response) {
-          return response;
-        }
-        // اگر نبود، از اینترنت بگیر
-        return fetch(event.request);
+        // اگر پاسخ در کش موجود بود، آن را برمی‌گرداند. در غیر این صورت از شبکه درخواست می‌کند.
+        return response || fetch(event.request);
       })
   );
 });
 
-// 3. حذف کش‌های قدیمی (بخش بسیار مهم برای آپدیت‌ها)
+// رویداد activate: کش‌های قدیمی را پاک می‌کند
 self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME]; // فقط کش با نام جدید مجاز است
+  const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
-            // اگر نام کش در لیست مجاز نبود، آن را حذف کن
             console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
