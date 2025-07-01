@@ -1,5 +1,5 @@
 // 1. نسخه کش را حتماً عوض کنید تا مرورگر مجبور به آپدیت شود
-const CACHE_NAME = 'form-offline-v4'; // از v1 به v2 تغییر یافت
+const CACHE_NAME = 'form-offline-v5'; // از v1 به v2 تغییر یافت
 
 // 2. لیست کامل و صحیح فایل‌ها
 const urlsToCache = [
