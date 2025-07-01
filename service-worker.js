@@ -1,70 +1,54 @@
-// service-worker.js
-// نام و نسخه کش
-const CACHE_NAME = 'form-offline-v1';
+// 1. تغییر نام کش - این خیلی مهمه!
+const CACHE_NAME = 'waste-app-cache-v2'; // نسخه رو از v1 به v2 تغییر دادیم
 
-// لیست تمام فایل‌هایی که برای کارکرد آفلاین برنامه نیاز است
+// 2. لیست کامل فایل‌ها برای کش شدن
 const urlsToCache = [
-  './',
-  './index.html',
-  './assets/css/jdp.min.css',
-  './assets/css/bootstrap-icons.min.css',
-  './assets/css/choices.min.css',
-  './assets/js/html2canvas.min.js',
-  './assets/js/jdp.min.js',
-  './assets/js/choices.min.js',
-  './assets/fonts/vazirmatn/Vazirmatn-RD-Regular.woff2', // دقت کنید که اسم فایل فونت دقیقاً همین باشه
-  './assets/fonts/vazirmatn/Vazirmatn-RD-Medium.woff2',
-  './assets/fonts/vazirmatn/Vazirmatn-RD-Bold.woff2',
-  './assets/fonts/bootstrap-icons.woff',
-  './assets/fonts/bootstrap-icons.woff2',
-  './assets/icons/icon-192x192.png',
-  './assets/icons/icon-512x512.png'
+  '/', // این آدرس ریشه است
+  'index.html',
+  'style.css',
+  'script.js',
+  'manifest.json',
+  'images/icon-192.png',
+  'images/icon-512.png',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css' // فایل آیکون‌ها
 ];
 
-// رویداد نصب: فایل‌ها را در کش ذخیره می‌کند
+// هنگام نصب سرویس ورکر، فایل‌ها را کش کن
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache)
-          .catch(error => { // **اینجا اضافه شد**
-            console.error('Failed to add to cache:', error);
-            // می‌توانید اینجا یک پیام خطا هم به کاربر نشان دهید
-          });
+        console.log('Opened cache and caching files');
+        return cache.addAll(urlsToCache);
       })
   );
 });
 
-// رویداد fetch: درخواست‌ها را رهگیری کرده و از کش پاسخ می‌دهد
+// هنگام دریافت درخواست (fetch)، از کش استفاده کن
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // اگر پاسخ در کش موجود بود، آن را برمی‌گرداند
+        // اگر فایل در کش بود، همان را برگردان
         if (response) {
           return response;
         }
-        // در غیر این صورت، درخواست را به شبکه ارسال می‌کند
-        return fetch(event.request)
-          .catch(() => { // **می‌توانید یک fallback برای حالت آفلاین اضافه کنید**
-            // مثلاً برای صفحات HTML:
-            // return caches.match('/offline.html');
-            // یا یک پاسخ خالی برای جلوگیری از خطا
-            return new Response('You are offline and the requested resource is not in the cache.', { status: 503, statusText: 'Service Unavailable' });
-          });
+        // اگر نبود، از اینترنت بگیر
+        return fetch(event.request);
       })
   );
 });
 
-// رویداد activate: کش‌های قدیمی را پاک می‌کند
+// 3. حذف کش‌های قدیمی (بخش بسیار مهم برای آپدیت‌ها)
 self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
+  const cacheWhitelist = [CACHE_NAME]; // فقط کش با نام جدید مجاز است
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            // اگر نام کش در لیست مجاز نبود، آن را حذف کن
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
